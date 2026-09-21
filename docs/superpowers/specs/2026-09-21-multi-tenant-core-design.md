@@ -41,7 +41,7 @@ Code must be understandable even by a non-expert:
 | Vendor signup | Instant self-service; message sending locked until admin verifies |
 | Tenant enforcement | Hibernate built-in `@TenantId` (automatic filter on reads and writes) |
 | Frontend | Separate React app (Vite + TypeScript) in sibling folder `eventcard-web/` |
-| Tests | JUnit + Spring Boot Test with in-memory H2 database |
+| Tests | JUnit + Spring Boot Test against real PostgreSQL in Docker (Testcontainers) |
 
 ## 3. Overall structure
 
@@ -259,8 +259,18 @@ One `GlobalErrorHandler` returns every error in this shape:
 
 ## 9. Testing
 
-JUnit 5 + Spring Boot Test, **in-memory H2** (PostgreSQL compatibility mode) via
-a `test` profile.
+JUnit 5 + Spring Boot Test against a **real PostgreSQL database running in
+Docker**, started and stopped automatically by **Testcontainers**
+(`org.testcontainers:postgresql`, image `postgres:16-alpine`). Spring Boot's
+`@ServiceConnection` wires the container into the app, so tests need no manual
+database settings.
+
+- One shared container for the whole test run (started once, reused by every
+  test class) to keep tests fast.
+- Each test cleans up its own data, so tests don't affect each other.
+- Requirement: Docker (e.g. Docker Desktop on Windows) must be installed and
+  running when `mvnw test` is run. If Docker is not running, tests fail with a
+  clear "Docker is not available" message.
 
 Required tests:
 - **Tenant isolation:** two companies; company A users cannot list, read or
