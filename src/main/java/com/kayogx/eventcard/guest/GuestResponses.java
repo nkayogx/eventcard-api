@@ -18,7 +18,12 @@ public final class GuestResponses {
             String cardTypeName,
             int seats,
             String groupName,
-            String notes
+            String notes,
+            String invitationCode,
+            String invitationLink,
+            RsvpStatus rsvpStatus,
+            Integer rsvpPeople,
+            String rsvpMessage
     ) {
     }
 

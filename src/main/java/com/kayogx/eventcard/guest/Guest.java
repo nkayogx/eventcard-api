@@ -1,5 +1,6 @@
 package com.kayogx.eventcard.guest;
 
+import com.kayogx.eventcard.common.RandomCodes;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -51,9 +52,40 @@ public class Guest {
     @Column(length = 500)
     private String notes;
 
+    /**
+     * The secret part of the guest's personal link and QR code, e.g. "Xk9p2QmT7aBc".
+     * Created automatically when the guest is first saved.
+     */
+    @Column(unique = true, length = 20)
+    private String invitationCode;
+
+    @Enumerated(EnumType.STRING)
+    private RsvpStatus rsvpStatus = RsvpStatus.NO_REPLY;
+
+    /** How many people are coming (only when attending). */
+    private Integer rsvpPeople;
+
+    @Column(length = 300)
+    private String rsvpMessage;
+
+    private Instant rsvpAnsweredAt;
+
     @CreationTimestamp
     private Instant createdAt;
 
     @UpdateTimestamp
     private Instant updatedAt;
+
+    /** Runs just before a new guest is saved: gives every guest their own invitation code. */
+    @PrePersist
+    void giveInvitationCode() {
+        if (invitationCode == null) {
+            invitationCode = RandomCodes.newInvitationCode();
+        }
+    }
+
+    /** Guests saved before RSVP existed have no status yet - they simply haven't replied. */
+    public RsvpStatus getRsvpStatus() {
+        return rsvpStatus == null ? RsvpStatus.NO_REPLY : rsvpStatus;
+    }
 }

@@ -41,8 +41,9 @@ public class GuestController {
                                 @RequestParam(required = false) String search,
                                 @RequestParam(required = false) UUID cardTypeId,
                                 @RequestParam(required = false) String group,
+                                @RequestParam(required = false) RsvpStatus rsvp,
                                 @RequestParam(defaultValue = "0") int page) {
-        return guestService.listGuests(eventId, search, cardTypeId, group, page);
+        return guestService.listGuests(eventId, search, cardTypeId, group, rsvp, page);
     }
 
     @PostMapping

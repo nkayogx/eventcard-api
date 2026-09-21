@@ -38,4 +38,10 @@ public class CardType {
     /** Card types are shown in this order (smallest first). */
     @Column(nullable = false)
     private int sortOrder;
+
+    /**
+     * Optional special artwork for this card type (e.g. a gold VIP card), in the
+     * "card-backgrounds" folder. Empty means: use the event's main artwork.
+     */
+    private String backgroundFile;
 }

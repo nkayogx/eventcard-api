@@ -12,6 +12,8 @@ public interface CompanyRepository extends JpaRepository<Company, UUID> {
 
     boolean existsByCustomDomainIgnoreCase(String customDomain);
 
+    boolean existsByCustomDomainIgnoreCaseAndCustomDomainVerifiedTrue(String customDomain);
+
     /** Used by the platform admin's search box. */
     Page<Company> findByNameContainingIgnoreCase(String namePart, Pageable pageable);
 }

@@ -35,6 +35,20 @@ public class LocalFileStorage implements FileStorage, WebMvcConfigurer {
         } catch (IOException problem) {
             throw new UncheckedIOException("Could not save the uploaded file", problem);
         }
+        return publicUrl(folder, fileName);
+    }
+
+    @Override
+    public byte[] read(String folder, String fileName) {
+        try {
+            return Files.readAllBytes(uploadsFolder.resolve(folder).resolve(fileName));
+        } catch (IOException problem) {
+            throw new UncheckedIOException("Could not read the saved file " + folder + "/" + fileName, problem);
+        }
+    }
+
+    @Override
+    public String publicUrl(String folder, String fileName) {
         return publicApiUrl + "/uploads/" + folder + "/" + fileName;
     }
 

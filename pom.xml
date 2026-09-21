@@ -76,6 +76,13 @@
 			<version>1.14.1</version>
 		</dependency>
 
+		<!-- ===== QR codes on invitation cards ===== -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>core</artifactId>
+			<version>3.5.4</version>
+		</dependency>
+
 		<!-- ===== Developer helpers ===== -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -102,6 +109,13 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security-test</artifactId>
+			<scope>test</scope>
+		</dependency>
+		<!-- Reading QR codes back from card images in tests -->
+		<dependency>
+			<groupId>com.google.zxing</groupId>
+			<artifactId>javase</artifactId>
+			<version>3.5.4</version>
 			<scope>test</scope>
 		</dependency>
 		<!-- Real PostgreSQL in Docker for tests (used when Docker is available) -->

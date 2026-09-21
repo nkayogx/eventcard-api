@@ -2,6 +2,8 @@ package com.kayogx.eventcard.event;
 
 import com.kayogx.eventcard.event.EventResponses.CardTypeDetails;
 import com.kayogx.eventcard.event.EventResponses.GroupTotals;
+import com.kayogx.eventcard.event.EventResponses.RsvpTotals;
+import com.kayogx.eventcard.guest.RsvpStatus;
 import com.kayogx.eventcard.guest.GuestRepository;
 import org.springframework.stereotype.Component;
 
@@ -78,6 +80,25 @@ public class EventTotals {
             totalsPerGroup.put(groupName, new GroupTotals(groupName, soFar.cards() + cards, soFar.seats() + seats));
         }
         return new ArrayList<>(totalsPerGroup.values());
+    }
+
+    /** How the guests of one event have answered the RSVP. */
+    public RsvpTotals rsvpTotals(UUID eventId) {
+        long attendingCards = 0, attendingPeople = 0, notAttendingCards = 0, noReplyCards = 0;
+        for (Object[] row : guestRepository.countRsvpAnswers(eventId)) {
+            RsvpStatus status = row[0] == null ? RsvpStatus.NO_REPLY : (RsvpStatus) row[0];
+            long cards = (Long) row[1];
+            long people = ((Number) row[2]).longValue();
+            switch (status) {
+                case ATTENDING -> {
+                    attendingCards += cards;
+                    attendingPeople += people;
+                }
+                case NOT_ATTENDING -> notAttendingCards += cards;
+                case NO_REPLY -> noReplyCards += cards;
+            }
+        }
+        return new RsvpTotals(attendingCards, attendingPeople, notAttendingCards, noReplyCards);
     }
 
     private static Map<UUID, Integer> seatsPerCardType(List<CardType> cardTypes) {

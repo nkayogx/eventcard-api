@@ -42,4 +42,11 @@ public record CompanyDetails(
                 company.isCanSendMessages(),
                 company.getCreatedAt());
     }
+
+    /** The same details, with the CNAME target filled into the custom domain instructions. */
+    public CompanyDetails withCnameTarget(String cnameTarget) {
+        CustomDomainSetup domainWithTarget = customDomain == null ? null : customDomain.withCnameTarget(cnameTarget);
+        return new CompanyDetails(id, name, slug, logoUrl, contactPhone, contactEmail, address, city, countryCode,
+                timeZone, primaryColor, secondaryColor, domainWithTarget, accountStatus, canSendMessages, createdAt);
+    }
 }

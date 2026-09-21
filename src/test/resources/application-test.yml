@@ -5,6 +5,7 @@ app:
   jwt:
     secret: test-secret-that-is-long-enough-for-hs256-signing-0123456789
   uploads-folder: target/test-uploads
+  card-cache-folder: target/test-card-cache
   platform-admin:
     email: admin@test.local
     password: AdminPassword1

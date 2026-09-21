@@ -32,6 +32,14 @@ public interface GuestRepository extends JpaRepository<Guest, UUID>, JpaSpecific
     @Query("select g.groupName, g.cardTypeId, count(g) from Guest g where g.eventId = :eventId group by g.groupName, g.cardTypeId")
     List<Object[]> countCardsPerGroupAndCardType(UUID eventId);
 
+    Optional<Guest> findByInvitationCode(String invitationCode);
+
+    List<Guest> findByInvitationCodeIsNull();
+
+    /** RSVP answers of one event. Each row: [rsvpStatus, number of cards, number of people coming]. */
+    @Query("select g.rsvpStatus, count(g), coalesce(sum(g.rsvpPeople), 0) from Guest g where g.eventId = :eventId group by g.rsvpStatus")
+    List<Object[]> countRsvpAnswers(UUID eventId);
+
     @Query("select distinct g.groupName from Guest g where g.eventId = :eventId and g.groupName is not null order by g.groupName")
     List<String> findGroupNames(UUID eventId);
 }

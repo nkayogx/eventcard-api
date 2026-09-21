@@ -34,3 +34,6 @@ build/
 
 ### Uploaded files (logos) saved by the app ###
 uploads/
+
+### Guest card images made by the app (private) ###
+card-cache/

@@ -1,6 +1,7 @@
 package com.kayogx.eventcard.event;
 
 import com.kayogx.eventcard.auth.LoggedInUser;
+import com.kayogx.eventcard.card.CardDesignService;
 import com.kayogx.eventcard.common.ConflictException;
 import com.kayogx.eventcard.common.InvalidInputException;
 import com.kayogx.eventcard.common.PhoneNumbers;
@@ -36,19 +37,22 @@ public class EventService {
     private final EventFinder eventFinder;
     private final EventTotals eventTotals;
     private final CurrentCompany currentCompany;
+    private final CardDesignService cardDesignService;
 
     public EventService(EventRepository eventRepository,
                         CardTypeRepository cardTypeRepository,
                         GuestRepository guestRepository,
                         EventFinder eventFinder,
                         EventTotals eventTotals,
-                        CurrentCompany currentCompany) {
+                        CurrentCompany currentCompany,
+                        CardDesignService cardDesignService) {
         this.eventRepository = eventRepository;
         this.cardTypeRepository = cardTypeRepository;
         this.guestRepository = guestRepository;
         this.eventFinder = eventFinder;
         this.eventTotals = eventTotals;
         this.currentCompany = currentCompany;
+        this.cardDesignService = cardDesignService;
     }
 
     /** Events sorted by start date. Both filters are optional. */
@@ -131,6 +135,7 @@ public class EventService {
             throw new ConflictException("Only draft events can be deleted. Cancel this event instead.");
         }
         guestRepository.deleteAllByEventId(eventId);
+        cardDesignService.deleteDesignOf(eventId);
         cardTypeRepository.deleteAllByEventId(eventId);
         eventRepository.delete(event);
     }
@@ -184,7 +189,7 @@ public class EventService {
                 event.getDressCode(), event.getExtraInfo(), event.getContactPhone(), event.getRsvpDeadline(),
                 event.getStatus(), event.getStatus().allowedNextStatuses(),
                 cardTypes, eventTotals.groupTotals(event.getId()),
-                totalCards, totalSeats);
+                totalCards, totalSeats, eventTotals.rsvpTotals(event.getId()));
     }
 
     private static String blankToNull(String text) {

@@ -7,6 +7,7 @@ import com.kayogx.eventcard.common.InvalidInputException;
 import com.kayogx.eventcard.common.NotFoundException;
 import com.kayogx.eventcard.common.RandomCodes;
 import com.kayogx.eventcard.storage.FileStorage;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,15 +34,19 @@ public class CompanyService {
     private final FileStorage fileStorage;
     private final DnsTxtLookup dnsTxtLookup;
 
-    public CompanyService(CompanyRepository companyRepository, FileStorage fileStorage, DnsTxtLookup dnsTxtLookup) {
+    private final String cnameTarget;
+
+    public CompanyService(CompanyRepository companyRepository, FileStorage fileStorage, DnsTxtLookup dnsTxtLookup,
+                          @Value("${app.custom-domain-target}") String cnameTarget) {
         this.companyRepository = companyRepository;
         this.fileStorage = fileStorage;
         this.dnsTxtLookup = dnsTxtLookup;
+        this.cnameTarget = cnameTarget;
     }
 
     @Transactional(readOnly = true)
     public CompanyDetails getMyCompany() {
-        return CompanyDetails.from(loadMyCompany());
+        return detailsOf(loadMyCompany());
     }
 
     @Transactional
@@ -64,7 +69,7 @@ public class CompanyService {
         company.setTimeZone(request.timeZone());
         company.setPrimaryColor(upperCaseOrNull(request.primaryColor()));
         company.setSecondaryColor(upperCaseOrNull(request.secondaryColor()));
-        return CompanyDetails.from(company);
+        return detailsOf(company);
     }
 
     /** Saves a new logo (PNG, JPG or SVG, max 2 MB) and returns the updated profile. */
@@ -83,7 +88,7 @@ public class CompanyService {
         // A new random name each time, so browsers don't keep showing an old cached logo
         String fileName = company.getId() + "-" + RandomCodes.newCode() + "." + fileType;
         company.setLogoUrl(fileStorage.save("logos", fileName, content));
-        return CompanyDetails.from(company);
+        return detailsOf(company);
     }
 
     /**
@@ -106,7 +111,7 @@ public class CompanyService {
         company.setCustomDomain(domain);
         company.setCustomDomainVerified(false);
         company.setDomainVerificationCode("eventcard-verify=" + RandomCodes.newCode());
-        return CompanyDetails.from(company);
+        return detailsOf(company);
     }
 
     /** Step 2: we look up the DNS record. If it matches, the domain is verified. */
@@ -126,7 +131,7 @@ public class CompanyService {
         }
 
         company.setCustomDomainVerified(true);
-        return CompanyDetails.from(company);
+        return detailsOf(company);
     }
 
     @Transactional
@@ -135,7 +140,11 @@ public class CompanyService {
         company.setCustomDomain(null);
         company.setCustomDomainVerified(false);
         company.setDomainVerificationCode(null);
-        return CompanyDetails.from(company);
+        return detailsOf(company);
+    }
+
+    private CompanyDetails detailsOf(Company company) {
+        return CompanyDetails.from(company).withCnameTarget(cnameTarget);
     }
 
     private Company loadMyCompany() {

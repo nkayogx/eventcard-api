@@ -51,6 +51,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(rules -> rules
                         .requestMatchers(HttpMethod.POST, "/api/auth/signup-company", "/api/auth/login").permitAll()
                         .requestMatchers("/api/invitations/**").permitAll()
+                        .requestMatchers("/api/public/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/uploads/**").permitAll()
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/api/platform/**").hasRole("PLATFORM_ADMIN")

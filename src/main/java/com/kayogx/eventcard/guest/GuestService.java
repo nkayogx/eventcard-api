@@ -1,9 +1,11 @@
 package com.kayogx.eventcard.guest;
 
+import com.kayogx.eventcard.card.InvitationLinks;
 import com.kayogx.eventcard.common.ConflictException;
 import com.kayogx.eventcard.common.InvalidInputException;
 import com.kayogx.eventcard.common.NotFoundException;
 import com.kayogx.eventcard.common.PhoneNumbers;
+import com.kayogx.eventcard.company.Company;
 import com.kayogx.eventcard.company.CurrentCompany;
 import com.kayogx.eventcard.event.CardType;
 import com.kayogx.eventcard.event.CardTypeRepository;
@@ -36,20 +38,24 @@ public class GuestService {
     private final CardTypeRepository cardTypeRepository;
     private final EventFinder eventFinder;
     private final CurrentCompany currentCompany;
+    private final InvitationLinks invitationLinks;
 
     public GuestService(GuestRepository guestRepository,
                         CardTypeRepository cardTypeRepository,
                         EventFinder eventFinder,
-                        CurrentCompany currentCompany) {
+                        CurrentCompany currentCompany,
+                        InvitationLinks invitationLinks) {
         this.guestRepository = guestRepository;
         this.cardTypeRepository = cardTypeRepository;
         this.eventFinder = eventFinder;
         this.currentCompany = currentCompany;
+        this.invitationLinks = invitationLinks;
     }
 
-    /** Guests sorted by name. Search (name or phone), card type and group filters are optional. */
+    /** Guests sorted by name. Search (name or phone), card type, group and RSVP filters are optional. */
     @Transactional(readOnly = true)
-    public GuestPage listGuests(UUID eventId, String search, UUID cardTypeIdFilter, String groupFilter, int page) {
+    public GuestPage listGuests(UUID eventId, String search, UUID cardTypeIdFilter, String groupFilter,
+                                RsvpStatus rsvpFilter, int page) {
         eventFinder.findEvent(eventId);
 
         Specification<Guest> filters = (guest, query, conditions) -> {
@@ -67,15 +73,23 @@ public class GuestService {
             if (groupFilter != null && !groupFilter.isBlank()) {
                 rules.add(conditions.equal(guest.get("groupName"), groupFilter));
             }
+            if (rsvpFilter == RsvpStatus.NO_REPLY) {
+                // Guests from before RSVP existed have no status saved yet - they count as "no reply" too
+                rules.add(conditions.or(conditions.equal(guest.get("rsvpStatus"), rsvpFilter),
+                        conditions.isNull(guest.get("rsvpStatus"))));
+            } else if (rsvpFilter != null) {
+                rules.add(conditions.equal(guest.get("rsvpStatus"), rsvpFilter));
+            }
             return conditions.and(rules.toArray(new Predicate[0]));
         };
 
         Page<Guest> result = guestRepository.findAll(filters,
                 PageRequest.of(page, GUESTS_PER_PAGE, Sort.by("nameOnCard")));
         Map<UUID, CardType> cardTypes = cardTypesOf(eventId);
+        Company company = currentCompany.get();
 
         List<GuestDetails> guests = result.getContent().stream()
-                .map(guest -> detailsOf(guest, cardTypes.get(guest.getCardTypeId())))
+                .map(guest -> detailsOf(guest, cardTypes.get(guest.getCardTypeId()), company))
                 .toList();
         return new GuestPage(guests, result.getNumber(), result.getTotalPages(), result.getTotalElements(),
                 guestRepository.findGroupNames(eventId));
@@ -96,7 +110,7 @@ public class GuestService {
         guest.setEventId(eventId);
         copyFormIntoGuest(request, guest, phone);
         guestRepository.save(guest);
-        return detailsOf(guest, cardType);
+        return detailsOf(guest, cardType, currentCompany.get());
     }
 
     @Transactional
@@ -112,7 +126,7 @@ public class GuestService {
         }
 
         copyFormIntoGuest(request, guest, phone);
-        return detailsOf(guest, cardType);
+        return detailsOf(guest, cardType, currentCompany.get());
     }
 
     @Transactional
@@ -150,10 +164,12 @@ public class GuestService {
                 .collect(Collectors.toMap(CardType::getId, Function.identity()));
     }
 
-    static GuestDetails detailsOf(Guest guest, CardType cardType) {
+    private GuestDetails detailsOf(Guest guest, CardType cardType, Company company) {
         return new GuestDetails(guest.getId(), guest.getNameOnCard(), guest.getPhone(),
                 cardType.getId(), cardType.getName(), cardType.getSeats(),
-                guest.getGroupName(), guest.getNotes());
+                guest.getGroupName(), guest.getNotes(),
+                guest.getInvitationCode(), invitationLinks.linkFor(company, guest.getInvitationCode()),
+                guest.getRsvpStatus(), guest.getRsvpPeople(), guest.getRsvpMessage());
     }
 
     static String blankToNull(String text) {

@@ -4,7 +4,7 @@ EventCard lets many event companies ("vendors") send digital invitation cards ov
 WhatsApp, SMS and links. This project is the **backend** (Spring Boot, Java 17).
 The React website lives next to it in `../eventcard-web`.
 
-Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md)
+Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md) · [digital cards](docs/superpowers/specs/2026-09-21-card-design-design.md)
 
 ## Run it on your computer
 
@@ -37,7 +37,9 @@ environment variables instead of using the development defaults:
 | `JWT_SECRET` | secret for login tokens — a long random text (32+ characters) |
 | `FRONTEND_URL` | address of the React website (for CORS and invitation links) |
 | `PUBLIC_API_URL` | public address of this API (for logo links) |
-| `UPLOADS_FOLDER` | where uploaded logos are saved |
+| `UPLOADS_FOLDER` | where uploaded logos and card artwork are saved (publicly downloadable) |
+| `CARD_CACHE_FOLDER` | where finished guest cards are kept — **private**, never serve it publicly |
+| `CUSTOM_DOMAIN_TARGET` | the host name vendors point their custom domain to (CNAME) |
 | `PLATFORM_ADMIN_EMAIL`, `PLATFORM_ADMIN_PASSWORD` | the first platform admin |
 
 ## Tests
@@ -60,6 +62,8 @@ Each folder is one topic:
 | `user/` | users, roles, staff list, invitations |
 | `event/` | events, card types (Single, Double, VIP…), totals |
 | `guest/` | guest lists, Excel/CSV upload, template download |
+| `card/` | card designs, templates, drawing card images and QR codes |
+| `invitation/` | the guest's public invitation page and RSVP (no login) |
 | `platform/` | the platform admin's screens (all companies, suspend, allow sending) |
 | `tenant/` | **keeps each company's data separate** — start with `CurrentTenant.java` |
 | `storage/` | saving uploaded files |
@@ -71,3 +75,26 @@ Every table that belongs to a company has a `company_id` column marked `@TenantI
 Hibernate automatically adds "only this company's rows" to every database query,
 using the company of the logged-in user. If code ever forgets to choose a company,
 it sees **nothing** rather than everything. See `tenant/HibernateTenantSetup.java`.
+
+## Custom domains for vendors (hosting)
+
+A vendor's own domain (e.g. `invites.kayoevents.com`) points to `CUSTOM_DOMAIN_TARGET`
+with a CNAME record. The React website must then answer on that domain with HTTPS.
+The simplest way is a Caddy web server with *on-demand TLS*, which gets a free
+certificate for each vendor domain the first time a guest visits:
+
+```
+{
+    on_demand_tls {
+        # Caddy asks our API before getting a certificate, so only real vendor domains get one
+        ask http://localhost:8181/api/public/domains/allowed
+    }
+}
+https:// {
+    tls { on_demand }
+    reverse_proxy localhost:4173   # the built React website
+}
+```
+
+The `ask` address answers 200 only for vendors' **verified** custom domains, so nobody
+can make Caddy request certificates for random domains.

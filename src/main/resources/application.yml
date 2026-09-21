@@ -45,8 +45,14 @@ app:
   # Public address of this API (used to build links to uploaded files)
   public-api-url: ${PUBLIC_API_URL:http://localhost:8181}
 
-  # Folder on disk where uploaded files (logos) are saved
+  # Folder on disk where uploaded files (logos, card artwork) are saved. Publicly downloadable.
   uploads-folder: ${UPLOADS_FOLDER:uploads}
+
+  # PRIVATE folder where finished guest cards are kept (they contain guest names)
+  card-cache-folder: ${CARD_CACHE_FOLDER:card-cache}
+
+  # Vendors point their custom domain here with a CNAME record
+  custom-domain-target: ${CUSTOM_DOMAIN_TARGET:invites.eventcard.app}
 
   # The first platform admin account, created at startup if none exists
   platform-admin:

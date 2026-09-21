@@ -39,6 +39,12 @@ public class GlobalErrorHandler {
         return ErrorResponse.of(problem.getMessage());
     }
 
+    @ExceptionHandler(TooManyRequestsException.class)
+    @ResponseStatus(HttpStatus.TOO_MANY_REQUESTS)
+    public ErrorResponse handleTooManyRequests(TooManyRequestsException problem) {
+        return ErrorResponse.of(problem.getMessage());
+    }
+
     @ExceptionHandler(InvalidInputException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleInvalidInput(InvalidInputException problem) {

@@ -38,6 +38,10 @@ public final class EventResponses {
     public record GroupTotals(String groupName, long cards, long seats) {
     }
 
+    /** How guests have answered: cards that said yes (and how many people), cards that said no, and no answer yet. */
+    public record RsvpTotals(long attendingCards, long attendingPeople, long notAttendingCards, long noReplyCards) {
+    }
+
     /** Everything about one event, as shown on the event page. */
     public record EventDetails(
             UUID id,
@@ -59,7 +63,8 @@ public final class EventResponses {
             List<CardTypeDetails> cardTypes,
             List<GroupTotals> groups,
             long totalCards,
-            long totalSeats
+            long totalSeats,
+            RsvpTotals rsvp
     ) {
     }
 }
