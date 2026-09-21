@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -16,6 +17,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -115,6 +117,38 @@ public abstract class IntegrationTest {
     protected UUID userIdOf(String token) throws Exception {
         String answer = get("/api/me", token).andReturn().getResponse().getContentAsString();
         return UUID.fromString(JsonPath.read(answer, "$.userId"));
+    }
+
+    /** Creates a draft event and returns the whole answer as JSON text. */
+    protected String createEvent(String token, String eventName) throws Exception {
+        return post("/api/events", token, Map.of(
+                "name", eventName,
+                "eventType", "WEDDING",
+                "startsAt", "2026-12-12T16:00:00",
+                "venueName", "Serena Hotel"))
+                .andExpect(status().isCreated())
+                .andReturn().getResponse().getContentAsString();
+    }
+
+    protected String createEventAndGetId(String token) throws Exception {
+        return JsonPath.read(createEvent(token, "Asha & Baraka's Wedding"), "$.id");
+    }
+
+    /** The id of the event's card type with the given name, e.g. "Double". */
+    protected String cardTypeId(String token, String eventId, String cardTypeName) throws Exception {
+        String event = get("/api/events/" + eventId, token).andReturn().getResponse().getContentAsString();
+        List<String> ids = JsonPath.read(event, "$.cardTypes[?(@.name == '" + cardTypeName + "')].id");
+        return ids.get(0);
+    }
+
+    protected ResultActions uploadFile(String address, String token, String fileName, byte[] content) throws Exception {
+        var file = new MockMultipartFile("file", fileName, "application/octet-stream", content);
+        return api.perform(MockMvcRequestBuilders.multipart(address).file(file)
+                .header("Authorization", "Bearer " + token));
+    }
+
+    protected ResultActions delete(String address, String token) throws Exception {
+        return api.perform(withToken(MockMvcRequestBuilders.delete(address), token));
     }
 
     // ---------- Plain HTTP helpers ----------

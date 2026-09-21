@@ -25,6 +25,8 @@ import java.nio.charset.StandardCharsets;
 @Service
 public class CompanyService {
 
+    private static final int MAX_LOGO_SIZE_IN_BYTES = 2 * 1024 * 1024;
+
     private static final String DOMAIN_PATTERN = "^([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\\.)+[a-z]{2,63}$";
 
     private final CompanyRepository companyRepository;
@@ -69,6 +71,9 @@ public class CompanyService {
     @Transactional
     public CompanyDetails uploadLogo(MultipartFile file) {
         byte[] content = readBytes(file);
+        if (content.length > MAX_LOGO_SIZE_IN_BYTES) {
+            throw new InvalidInputException("The logo is too large. The maximum size is 2 MB.", "file");
+        }
         String fileType = detectImageType(content);
         if (fileType == null) {
             throw new InvalidInputException("The logo must be a PNG, JPG or SVG image", "file");

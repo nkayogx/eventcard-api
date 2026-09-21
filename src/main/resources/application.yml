@@ -29,9 +29,9 @@ spring:
 
   servlet:
     multipart:
-      # Largest logo file we accept
-      max-file-size: 2MB
-      max-request-size: 3MB
+      # Largest file we accept (guest lists). Logos have their own 2 MB limit.
+      max-file-size: 5MB
+      max-request-size: 6MB
 
 app:
   jwt:

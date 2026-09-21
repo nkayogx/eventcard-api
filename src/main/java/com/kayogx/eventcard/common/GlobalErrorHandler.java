@@ -63,7 +63,7 @@ public class GlobalErrorHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleFileTooLarge(MaxUploadSizeExceededException problem) {
-        return new ErrorResponse("The file is too large. The maximum size is 2 MB.", "file");
+        return new ErrorResponse("The file is too large. The maximum size is 5 MB.", "file");
     }
 
     /** The user's role is not allowed to do this (for example a manager editing the company). */

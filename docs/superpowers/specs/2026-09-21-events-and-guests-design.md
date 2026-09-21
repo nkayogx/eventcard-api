@@ -178,8 +178,8 @@ Preview answer:
   "duplicates": [ { "row": 30, "nameOnCard": "...", "phone": "+255..." } ]
 }
 ```
-(`readyExamples` = first 10 ready rows.) The import answer has the same shape
-with `importedCount` instead of `readyCount`.
+(`readyExamples` = first 10 ready rows.) The import answer is
+`{ "importedCount": 148, "problems": [...], "duplicates": [...] }`.
 
 Uploads: the global upload limit becomes 5 MB; logos keep their own 2 MB limit.
 

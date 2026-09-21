@@ -4,7 +4,7 @@ EventCard lets many event companies ("vendors") send digital invitation cards ov
 WhatsApp, SMS and links. This project is the **backend** (Spring Boot, Java 17).
 The React website lives next to it in `../eventcard-web`.
 
-Design: [`docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md`](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md)
+Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md)
 
 ## Run it on your computer
 
@@ -58,6 +58,8 @@ Each folder is one topic:
 | `auth/` | signup, login, login tokens (JWT), security rules |
 | `company/` | company profile, logo, brand colours, custom domain |
 | `user/` | users, roles, staff list, invitations |
+| `event/` | events, card types (Single, Double, VIP…), totals |
+| `guest/` | guest lists, Excel/CSV upload, template download |
 | `platform/` | the platform admin's screens (all companies, suspend, allow sending) |
 | `tenant/` | **keeps each company's data separate** — start with `CurrentTenant.java` |
 | `storage/` | saving uploaded files |
