@@ -1,0 +1,11 @@
+# Extra settings used only when running tests.
+# (The database is chosen automatically - see TestDatabase.java)
+
+app:
+  jwt:
+    secret: test-secret-that-is-long-enough-for-hs256-signing-0123456789
+  uploads-folder: target/test-uploads
+  platform-admin:
+    email: admin@test.local
+    password: AdminPassword1
+    full-name: Test Admin

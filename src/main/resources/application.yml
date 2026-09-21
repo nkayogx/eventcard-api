@@ -1,0 +1,55 @@
+# =====================================================================
+# EventCard backend settings
+#
+# Values written like ${NAME:default} are read from an environment
+# variable called NAME. If that variable is not set, the default after
+# the colon is used. The defaults are only meant for local development -
+# always set real values (especially passwords and secrets) in production.
+# =====================================================================
+
+server:
+  port: ${PORT:8181}
+
+spring:
+  application:
+    name: eventcard
+
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/eventcard}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:123}
+
+  jpa:
+    hibernate:
+      # "update" lets Hibernate create/adjust tables automatically.
+      ddl-auto: update
+    # Each database transaction opens its own session. This matters for
+    # multi-company safety: the company filter is chosen when a session opens.
+    open-in-view: false
+
+  servlet:
+    multipart:
+      # Largest logo file we accept
+      max-file-size: 2MB
+      max-request-size: 3MB
+
+app:
+  jwt:
+    # Secret used to sign login tokens. Must be at least 32 characters.
+    secret: ${JWT_SECRET:local-development-secret-change-me-please-0123456789}
+    valid-for-hours: 12
+
+  # Address of the React website (used for CORS and in invitation links)
+  frontend-url: ${FRONTEND_URL:http://localhost:5173}
+
+  # Public address of this API (used to build links to uploaded files)
+  public-api-url: ${PUBLIC_API_URL:http://localhost:8181}
+
+  # Folder on disk where uploaded files (logos) are saved
+  uploads-folder: ${UPLOADS_FOLDER:uploads}
+
+  # The first platform admin account, created at startup if none exists
+  platform-admin:
+    email: ${PLATFORM_ADMIN_EMAIL:admin@eventcard.local}
+    password: ${PLATFORM_ADMIN_PASSWORD:ChangeMe123!}
+    full-name: ${PLATFORM_ADMIN_NAME:Platform Admin}

@@ -41,7 +41,7 @@ Code must be understandable even by a non-expert:
 | Vendor signup | Instant self-service; message sending locked until admin verifies |
 | Tenant enforcement | Hibernate built-in `@TenantId` (automatic filter on reads and writes) |
 | Frontend | Separate React app (Vite + TypeScript) in sibling folder `eventcard-web/` |
-| Tests | JUnit + Spring Boot Test against real PostgreSQL in Docker (Testcontainers) |
+| Tests | JUnit + Spring Boot Test against PostgreSQL in Docker (Testcontainers); falls back to in-memory H2 when Docker is not available |
 
 ## 3. Overall structure
 
@@ -111,7 +111,7 @@ tenant. Company endpoints load the row by the `companyId` of the logged-in user.
 | Column | Type / rule | Meaning |
 |---|---|---|
 | id | UUID, PK | |
-| company_id | UUID, `@TenantId` | empty only for `PLATFORM_ADMIN` |
+| company_id | UUID, `@TenantId` | for `PLATFORM_ADMIN` holds the special value `00000000-0000-0000-0000-000000000000` meaning "all companies" |
 | full_name | text, required | |
 | email | text, required, unique across platform | login name |
 | phone | text, optional | |
@@ -221,9 +221,12 @@ email delivery comes with the delivery sub-project.
    stamped with it on inserts.
 4. A platform admin is the Hibernate **root tenant** (`isRoot` returns true), so
    admin queries see all companies.
-5. Public endpoints that must look up data before a tenant is known (login,
-   invitation lookup) run as root tenant inside a clearly named helper
-   (`runWithoutTenantFilter(...)`), used only in `auth/`.
+5. Code that must look up data before a tenant is known (login, invitation
+   lookup, the JWT filter, the startup seeder) runs inside a clearly named helper
+   `CurrentTenant.runAsAllCompanies(...)`.
+6. **Fail-safe default:** when no company has been set for the current request,
+   queries run with a "no company" value that matches no rows — forgetting to
+   set the tenant shows nothing rather than everything.
 
 Records from another company are simply invisible, so they return `404` — we
 never reveal that they exist.
@@ -267,10 +270,10 @@ database settings.
 
 - One shared container for the whole test run (started once, reused by every
   test class) to keep tests fast.
-- Each test cleans up its own data, so tests don't affect each other.
-- Requirement: Docker (e.g. Docker Desktop on Windows) must be installed and
-  running when `mvnw test` is run. If Docker is not running, tests fail with a
-  clear "Docker is not available" message.
+- Each test creates its own fresh companies with unique emails, so tests never affect each other.
+- **Fallback:** if Docker is not installed or not running, the tests
+  automatically use an in-memory H2 database (PostgreSQL compatibility mode)
+  instead, and print which database was chosen. No manual switch needed.
 
 Required tests:
 - **Tenant isolation:** two companies; company A users cannot list, read or
