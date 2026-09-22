@@ -106,6 +106,25 @@ class SendingTest extends IntegrationTest {
     }
 
     @Test
+    void cardsCanBeSentToTickedGuestsOnly() throws Exception {
+        Setup setup = readyToSend(100);
+        String asha = addGuest(setup, "Asha", "0712000001");
+        addGuest(setup, "Baraka", "0712000002");
+        String juma = addGuest(setup, "Juma", "0712000003");
+        Map<String, Object> ticked = Map.of("who", "SELECTED", "guestIds", List.of(asha, juma), "channel", "SMS");
+
+        post("/api/events/" + setup.eventId() + "/sending/preview", setup.token(), ticked)
+                .andExpect(jsonPath("$.guestCount").value(2));
+        post("/api/events/" + setup.eventId() + "/sending", setup.token(), ticked)
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.messageCount").value(2))
+                .andExpect(jsonPath("$.description").value("Chosen guests"));
+
+        // Baraka was not ticked, so he is the only one still "not sent"
+        preview(setup, "NOT_SENT", "SMS").andExpect(jsonPath("$.guestCount").value(1));
+    }
+
+    @Test
     void aMessageThatFailsForGoodIsRefunded() throws Exception {
         Setup setup = readyToSend(100);
         addGuest(setup, "Not On WhatsApp", "0712340000");
