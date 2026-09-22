@@ -22,6 +22,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -101,9 +102,13 @@ public class SecurityConfig {
      * (Spring Security finds this by its exact name "corsConfigurationSource".)
      */
     @Bean
-    public CorsConfigurationSource corsConfigurationSource(@Value("${app.frontend-url}") String frontendUrl) {
+    public CorsConfigurationSource corsConfigurationSource(@Value("${app.frontend-url}") String frontendUrl,
+                                                           @Value("${app.extra-allowed-origins}") List<String> extraOrigins) {
         CorsConfiguration rules = new CorsConfiguration();
-        rules.setAllowedOrigins(List.of(frontendUrl));
+        // The website's own address, plus any extra ones (e.g. localhost while testing through a tunnel)
+        List<String> allowedOrigins = new ArrayList<>(List.of(frontendUrl));
+        extraOrigins.stream().filter(origin -> !origin.isBlank()).forEach(allowedOrigins::add);
+        rules.setAllowedOrigins(allowedOrigins);
         rules.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         rules.setAllowedHeaders(List.of("Authorization", "Content-Type"));
 
