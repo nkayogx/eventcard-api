@@ -4,7 +4,7 @@ EventCard lets many event companies ("vendors") send digital invitation cards ov
 WhatsApp, SMS and links. This project is the **backend** (Spring Boot, Java 17).
 The React website lives next to it in `../eventcard-web`.
 
-Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md) · [digital cards](docs/superpowers/specs/2026-09-21-card-design-design.md) · [plans & payments](docs/superpowers/specs/2026-09-22-billing-design.md) · [sending cards](docs/superpowers/specs/2026-09-22-sending-design.md)
+Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md) · [digital cards](docs/superpowers/specs/2026-09-21-card-design-design.md) · [plans & payments](docs/superpowers/specs/2026-09-22-billing-design.md) · [sending cards](docs/superpowers/specs/2026-09-22-sending-design.md) · [check-in](docs/superpowers/specs/2026-09-22-check-in-design.md)
 
 ## Run it on your computer
 
@@ -66,6 +66,7 @@ Each folder is one topic:
 | `card/` | card designs, templates, drawing card images and QR codes |
 | `invitation/` | the guest's public invitation page and RSVP (no login) |
 | `messaging/` | sending cards by WhatsApp/SMS: the queue, the background worker, delivery reports (start with `MessageWorker.java`) |
+| `checkin/` | letting guests in at the door: scan look-up, check-in with seat counting, undo, live numbers |
 | `billing/` | plans and their limits, message credits, payments (start with `PlanLimits.java` and `CreditAccount.java`) |
 | `platform/` | the platform admin's screens (all companies, suspend, allow sending) |
 | `tenant/` | **keeps each company's data separate** — start with `CurrentTenant.java` |
@@ -146,3 +147,11 @@ each with an **image header** and this body (`{{1}}` name, `{{2}}` company, `{{3
 
 Beem's report format should be checked against their current documentation when setting up;
 the app reads `request_id` and `status` (DELIVERED / UNDELIVERED / FAILED...).
+
+## Check-in at the door
+
+Staff open **Events → (event) → Open check-in** on their phone and scan each guest's QR code with
+the camera, or search by name/phone. USB/Bluetooth barcode scanners also work: they type the code
+into the page. Phones only allow the camera on **HTTPS** sites (or `localhost` while testing), so
+the website must be served over HTTPS at the venue. Check-in needs an internet connection; each
+scan is a tiny request, so weak mobile data is enough.

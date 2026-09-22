@@ -192,7 +192,8 @@ public class GuestService {
                 cardType.getId(), cardType.getName(), cardType.getSeats(),
                 guest.getGroupName(), guest.getNotes(),
                 guest.getInvitationCode(), invitationLinks.linkFor(company, guest.getInvitationCode()),
-                guest.getRsvpStatus(), guest.getRsvpPeople(), guest.getRsvpMessage(), cardStatus);
+                guest.getRsvpStatus(), guest.getRsvpPeople(), guest.getRsvpMessage(), cardStatus,
+                guest.getPeopleArrived(), guest.getLastArrivedAt());
     }
 
     static String blankToNull(String text) {

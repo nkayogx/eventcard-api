@@ -2,6 +2,7 @@ package com.kayogx.eventcard.guest;
 
 import com.kayogx.eventcard.messaging.MessageStatus;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,7 +27,9 @@ public final class GuestResponses {
             RsvpStatus rsvpStatus,
             Integer rsvpPeople,
             String rsvpMessage,
-            MessageStatus cardStatus
+            MessageStatus cardStatus,
+            int peopleArrived,
+            Instant lastArrivedAt
     ) {
     }
 

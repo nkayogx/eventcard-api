@@ -4,6 +4,7 @@ import com.kayogx.eventcard.common.RandomCodes;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.TenantId;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -69,6 +70,14 @@ public class Guest {
     private String rsvpMessage;
 
     private Instant rsvpAnsweredAt;
+
+    /** How many people on this card have come in at the door so far (0 up to the card's seats). */
+    @ColumnDefault("0")
+    private int peopleArrived = 0;
+
+    private Instant firstArrivedAt;
+
+    private Instant lastArrivedAt;
 
     @CreationTimestamp
     private Instant createdAt;
