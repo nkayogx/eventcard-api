@@ -43,8 +43,8 @@ Placeholders: `{name}` `{company}` `{event}` `{date}` `{venue}` `{link}`. Unknow
 
 | | Standard wording |
 |---|---|
-| SW | `Habari {name}, {company} inakualika kwenye {event}, {date}, {venue}. Kadi yako na RSVP: {link}` |
-| EN | `Hello {name}, {company} invites you to {event} on {date} at {venue}. Your card and RSVP: {link}` |
+| SW | `Habari {name}! {company} inakualika {event}, {date}, {venue}. Kadi & RSVP: {link}` |
+| EN | `Hi {name}! {company} invites you to {event}, {date}, {venue}. Card & RSVP: {link}` |
 
 WhatsApp sends the approved template for the language (`app.messaging.meta.template-sw/-en`)
 with the card image as header and body values: name, company, event, date, link.
@@ -63,11 +63,12 @@ characters (e.g. emoji): 70, then 67 per part. SMS text may be at most 5 parts.
 
 ## 6. Sending
 
-**Connectors:** `WhatsAppSender`, `SmsSender` interfaces → result (provider id, delivered already?)
+**Connectors:** one `MessageSender` interface (one per channel) → result (provider id, delivered already?)
 or a failure marked *temporary* (retry) or *permanent*.
 Choice in settings: `app.messaging.whatsapp = pretend | meta`, `app.messaging.sms = pretend | beem`.
-The pretend connector marks messages delivered at once; phone numbers ending in `0000` fail
-permanently ("not on WhatsApp"), numbers ending in `9999` fail temporarily — handy for demos and tests.
+The pretend connector marks messages delivered at once. Phone numbers ending in `0000` fail
+permanently on WhatsApp only ("not on WhatsApp"), `1111` fail permanently on SMS only, `9999` fail
+temporarily on both — handy for demos and tests.
 
 **Worker** (every 2 seconds, up to 20 messages, `app.messaging.worker-enabled`):
 skips/fails messages whose company is suspended or not allowed to send, or whose event is no

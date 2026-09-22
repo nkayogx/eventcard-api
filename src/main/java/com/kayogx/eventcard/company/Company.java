@@ -73,6 +73,13 @@ public class Company {
     /** Stays false until the platform admin verifies the company. Protects our SMS/WhatsApp costs. */
     private boolean canSendMessages = false;
 
+    /**
+     * The company's own SMS sender name (e.g. "KAYOEVENTS"), set by the platform admin once it is
+     * registered with the SMS company. Empty means our platform sender name is used.
+     */
+    @Column(length = 11)
+    private String smsSenderName;
+
     /** The plan the company chose and paid for. Empty means the Free plan. */
     private UUID planId;
 

@@ -4,7 +4,7 @@ EventCard lets many event companies ("vendors") send digital invitation cards ov
 WhatsApp, SMS and links. This project is the **backend** (Spring Boot, Java 17).
 The React website lives next to it in `../eventcard-web`.
 
-Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md) · [digital cards](docs/superpowers/specs/2026-09-21-card-design-design.md) · [plans & payments](docs/superpowers/specs/2026-09-22-billing-design.md)
+Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md) · [digital cards](docs/superpowers/specs/2026-09-21-card-design-design.md) · [plans & payments](docs/superpowers/specs/2026-09-22-billing-design.md) · [sending cards](docs/superpowers/specs/2026-09-22-sending-design.md)
 
 ## Run it on your computer
 
@@ -65,6 +65,7 @@ Each folder is one topic:
 | `guest/` | guest lists, Excel/CSV upload, template download |
 | `card/` | card designs, templates, drawing card images and QR codes |
 | `invitation/` | the guest's public invitation page and RSVP (no login) |
+| `messaging/` | sending cards by WhatsApp/SMS: the queue, the background worker, delivery reports (start with `MessageWorker.java`) |
 | `billing/` | plans and their limits, message credits, payments (start with `PlanLimits.java` and `CreditAccount.java`) |
 | `platform/` | the platform admin's screens (all companies, suspend, allow sending) |
 | `tenant/` | **keeps each company's data separate** — start with `CurrentTenant.java` |
@@ -110,3 +111,38 @@ into the app. You check the money arrived and press **Confirm** under
 To take payments automatically later (AzamPay, Selcom, ClickPesa...), add a class that
 implements `billing/PaymentProvider.java` and calls `PaymentConfirmer.confirm(...)` when the
 payment company reports the money arrived. Nothing else needs to change.
+
+## Sending cards (WhatsApp & SMS)
+
+Out of the box the app only **pretends** to send (messages are written to the log and marked
+delivered), so nothing costs money while you try things out. Pretend phone numbers ending in
+`0000` fail on WhatsApp, `1111` fail on SMS and `9999` fail temporarily - handy for demos.
+
+To send for real, set these environment variables:
+
+| Variable | What it is |
+|---|---|
+| `WHATSAPP_PROVIDER=meta` | switch WhatsApp from pretend to Meta's WhatsApp Cloud API |
+| `WHATSAPP_PHONE_NUMBER_ID`, `WHATSAPP_ACCESS_TOKEN` | from your Meta WhatsApp Business app |
+| `WHATSAPP_APP_SECRET` | used to check delivery reports really come from Meta |
+| `WHATSAPP_VERIFY_TOKEN` | any secret word; enter the same one in Meta's webhook settings |
+| `WHATSAPP_TEMPLATE_SW`, `WHATSAPP_TEMPLATE_EN` | names of your approved templates (default `eventcard_invitation_sw` / `_en`) |
+| `SMS_PROVIDER=beem` | switch SMS from pretend to Beem Africa |
+| `BEEM_API_KEY`, `BEEM_SECRET_KEY` | from your Beem account |
+| `SMS_SENDER_NAME` | your registered platform sender name (default `EVENTCARD`) |
+| `BEEM_WEBHOOK_TOKEN` | any secret word, used in the delivery report address below |
+
+**WhatsApp templates** to submit for approval in Meta Business Manager (category *Utility*),
+each with an **image header** and this body (`{{1}}` name, `{{2}}` company, `{{3}}` event,
+`{{4}}` date, `{{5}}` link):
+
+- `eventcard_invitation_en` (English): `Hello {{1}}, {{2}} invites you to {{3}} on {{4}}. Your card and RSVP: {{5}}`
+- `eventcard_invitation_sw` (Swahili): `Habari {{1}}, {{2}} inakualika kwenye {{3}}, {{4}}. Kadi yako na RSVP: {{5}}`
+
+**Delivery report addresses** (must be reachable from the internet):
+
+- Meta webhook: `https://<your-api>/api/public/webhooks/whatsapp` (subscribe to `messages`)
+- Beem delivery reports: `https://<your-api>/api/public/webhooks/beem?token=<BEEM_WEBHOOK_TOKEN>`
+
+Beem's report format should be checked against their current documentation when setting up;
+the app reads `request_id` and `status` (DELIVERED / UNDELIVERED / FAILED...).

@@ -1,5 +1,6 @@
 package com.kayogx.eventcard.event;
 
+import com.kayogx.eventcard.messaging.MessageLanguage;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -75,6 +76,14 @@ public class Event {
     @Column(nullable = false)
     private EventStatus status = EventStatus.DRAFT;
 
+    /** The language of the WhatsApp/SMS messages guests receive. */
+    @Enumerated(EnumType.STRING)
+    private MessageLanguage messageLanguage = MessageLanguage.SW;
+
+    /** The event's own SMS wording with {placeholders}. Empty means our standard wording. */
+    @Column(length = 800)
+    private String smsText;
+
     @Column(nullable = false)
     private UUID createdByUserId;
 
@@ -83,4 +92,9 @@ public class Event {
 
     @UpdateTimestamp
     private Instant updatedAt;
+
+    /** Events created before messages existed have no language saved yet - they use Kiswahili. */
+    public MessageLanguage getMessageLanguage() {
+        return messageLanguage == null ? MessageLanguage.SW : messageLanguage;
+    }
 }

@@ -4,6 +4,7 @@ import com.kayogx.eventcard.company.CompanyDetails;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
 import java.util.UUID;
 
 /** Platform admin only: oversee all vendor companies. */
@@ -22,6 +23,12 @@ public class PlatformController {
     public CompanyPage listCompanies(@RequestParam(required = false) String search,
                                      @RequestParam(defaultValue = "0") int page) {
         return platformService.listCompanies(search, page);
+    }
+
+    /** Body: { "smsSenderName": "KAYOEVENTS" } - or empty to use the platform sender again. */
+    @PutMapping("/{companyId}/sms-sender")
+    public CompanyPage.CompanyRow setSmsSenderName(@PathVariable UUID companyId, @RequestBody Map<String, String> body) {
+        return platformService.setSmsSenderName(companyId, body.get("smsSenderName"));
     }
 
     @PutMapping("/{companyId}/suspend")

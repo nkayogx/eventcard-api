@@ -61,6 +61,30 @@ app:
       pay-to-number: ${PAYMENT_PAY_TO_NUMBER:123456}
       networks: ${PAYMENT_NETWORKS:M-Pesa, Mixx by Yas, Airtel Money, HaloPesa}
 
+  # Sending cards over WhatsApp and SMS
+  messaging:
+    # The background worker that sends queued messages (switched off in tests)
+    worker-enabled: ${MESSAGING_WORKER_ENABLED:true}
+    # "pretend" writes to the log instead of really sending. Use "meta" / "beem" with real keys.
+    whatsapp: ${WHATSAPP_PROVIDER:pretend}
+    sms: ${SMS_PROVIDER:pretend}
+    # Sender name for SMS when a company has none of its own (max 11 letters, registered with Beem)
+    platform-sms-sender: ${SMS_SENDER_NAME:EVENTCARD}
+    meta:
+      api-version: v21.0
+      phone-number-id: ${WHATSAPP_PHONE_NUMBER_ID:}
+      access-token: ${WHATSAPP_ACCESS_TOKEN:}
+      # Used to check that delivery reports really come from Meta
+      app-secret: ${WHATSAPP_APP_SECRET:}
+      verify-token: ${WHATSAPP_VERIFY_TOKEN:change-me}
+      template-sw: ${WHATSAPP_TEMPLATE_SW:eventcard_invitation_sw}
+      template-en: ${WHATSAPP_TEMPLATE_EN:eventcard_invitation_en}
+    beem:
+      api-key: ${BEEM_API_KEY:}
+      secret-key: ${BEEM_SECRET_KEY:}
+      # Secret put in the delivery report address we give Beem: .../webhooks/beem?token=THIS
+      webhook-token: ${BEEM_WEBHOOK_TOKEN:change-me}
+
   # The first platform admin account, created at startup if none exists
   platform-admin:
     email: ${PLATFORM_ADMIN_EMAIL:admin@eventcard.local}

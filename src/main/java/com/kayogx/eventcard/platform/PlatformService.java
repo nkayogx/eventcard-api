@@ -1,6 +1,7 @@
 package com.kayogx.eventcard.platform;
 
 import com.kayogx.eventcard.billing.CurrentPlan;
+import com.kayogx.eventcard.common.InvalidInputException;
 import com.kayogx.eventcard.common.NotFoundException;
 import com.kayogx.eventcard.company.AccountStatus;
 import com.kayogx.eventcard.company.Company;
@@ -44,7 +45,22 @@ public class PlatformService {
     private CompanyPage.CompanyRow rowOf(Company company) {
         CurrentPlan.PlanState plan = currentPlan.stateOf(company);
         return new CompanyPage.CompanyRow(CompanyDetails.from(company), plan.plan().getName(), plan.status(),
-                plan.paidUntil(), company.getCreditBalance());
+                plan.paidUntil(), company.getCreditBalance(), company.getSmsSenderName());
+    }
+
+    /**
+     * Sets the company's own SMS sender name - only once it is registered with the SMS company.
+     * Empty clears it (our platform sender name is used again).
+     */
+    @Transactional
+    public CompanyPage.CompanyRow setSmsSenderName(UUID companyId, String senderName) {
+        Company company = findCompany(companyId);
+        String cleaned = senderName == null || senderName.isBlank() ? null : senderName.trim();
+        if (cleaned != null && !cleaned.matches("^[A-Za-z0-9 ]{3,11}$")) {
+            throw new InvalidInputException("A sender name has 3-11 letters or digits, e.g. KAYOEVENTS", "smsSenderName");
+        }
+        company.setSmsSenderName(cleaned);
+        return rowOf(company);
     }
 
     @Transactional

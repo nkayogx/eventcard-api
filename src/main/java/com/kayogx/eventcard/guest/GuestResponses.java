@@ -1,5 +1,7 @@
 package com.kayogx.eventcard.guest;
 
+import com.kayogx.eventcard.messaging.MessageStatus;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -23,7 +25,8 @@ public final class GuestResponses {
             String invitationLink,
             RsvpStatus rsvpStatus,
             Integer rsvpPeople,
-            String rsvpMessage
+            String rsvpMessage,
+            MessageStatus cardStatus
     ) {
     }
 

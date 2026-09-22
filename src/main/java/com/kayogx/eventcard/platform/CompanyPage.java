@@ -11,6 +11,6 @@ public record CompanyPage(List<CompanyRow> companies, int page, int totalPages, 
 
     /** A company, with its plan and credits. */
     public record CompanyRow(CompanyDetails company, String planName, CurrentPlan.Status planStatus,
-                             LocalDate planPaidUntil, long creditBalance) {
+                             LocalDate planPaidUntil, long creditBalance, String smsSenderName) {
     }
 }

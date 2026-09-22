@@ -14,6 +14,9 @@ import com.kayogx.eventcard.event.Event;
 import com.kayogx.eventcard.event.EventFinder;
 import com.kayogx.eventcard.guest.GuestResponses.GuestDetails;
 import com.kayogx.eventcard.guest.GuestResponses.GuestPage;
+import com.kayogx.eventcard.messaging.Message;
+import com.kayogx.eventcard.messaging.MessageRepository;
+import com.kayogx.eventcard.messaging.MessageStatus;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -23,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -41,19 +45,22 @@ public class GuestService {
     private final CurrentCompany currentCompany;
     private final InvitationLinks invitationLinks;
     private final PlanLimits planLimits;
+    private final MessageRepository messageRepository;
 
     public GuestService(GuestRepository guestRepository,
                         CardTypeRepository cardTypeRepository,
                         EventFinder eventFinder,
                         CurrentCompany currentCompany,
                         InvitationLinks invitationLinks,
-                        PlanLimits planLimits) {
+                        PlanLimits planLimits,
+                        MessageRepository messageRepository) {
         this.guestRepository = guestRepository;
         this.cardTypeRepository = cardTypeRepository;
         this.eventFinder = eventFinder;
         this.currentCompany = currentCompany;
         this.invitationLinks = invitationLinks;
         this.planLimits = planLimits;
+        this.messageRepository = messageRepository;
     }
 
     /** Guests sorted by name. Search (name or phone), card type, group and RSVP filters are optional. */
@@ -91,9 +98,10 @@ public class GuestService {
                 PageRequest.of(page, GUESTS_PER_PAGE, Sort.by("nameOnCard")));
         Map<UUID, CardType> cardTypes = cardTypesOf(eventId);
         Company company = currentCompany.get();
+        Map<UUID, MessageStatus> cardStatuses = latestCardStatuses(result.getContent());
 
         List<GuestDetails> guests = result.getContent().stream()
-                .map(guest -> detailsOf(guest, cardTypes.get(guest.getCardTypeId()), company))
+                .map(guest -> detailsOf(guest, cardTypes.get(guest.getCardTypeId()), company, cardStatuses.get(guest.getId())))
                 .toList();
         return new GuestPage(guests, result.getNumber(), result.getTotalPages(), result.getTotalElements(),
                 guestRepository.findGroupNames(eventId));
@@ -115,7 +123,7 @@ public class GuestService {
         guest.setEventId(eventId);
         copyFormIntoGuest(request, guest, phone);
         guestRepository.save(guest);
-        return detailsOf(guest, cardType, currentCompany.get());
+        return detailsOf(guest, cardType, currentCompany.get(), null);
     }
 
     @Transactional
@@ -131,7 +139,7 @@ public class GuestService {
         }
 
         copyFormIntoGuest(request, guest, phone);
-        return detailsOf(guest, cardType, currentCompany.get());
+        return detailsOf(guest, cardType, currentCompany.get(), latestCardStatuses(List.of(guest)).get(guest.getId()));
     }
 
     @Transactional
@@ -169,12 +177,22 @@ public class GuestService {
                 .collect(Collectors.toMap(CardType::getId, Function.identity()));
     }
 
-    private GuestDetails detailsOf(Guest guest, CardType cardType, Company company) {
+    /** Each guest's card status = the status of their most recent message (missing = not sent yet). */
+    private Map<UUID, MessageStatus> latestCardStatuses(List<Guest> guests) {
+        Map<UUID, MessageStatus> statuses = new HashMap<>();
+        List<UUID> guestIds = guests.stream().map(Guest::getId).toList();
+        for (Message message : messageRepository.findByGuestIdInOrderByQueuedAtAsc(guestIds)) {
+            statuses.put(message.getGuestId(), message.getStatus());   // later messages replace earlier ones
+        }
+        return statuses;
+    }
+
+    private GuestDetails detailsOf(Guest guest, CardType cardType, Company company, MessageStatus cardStatus) {
         return new GuestDetails(guest.getId(), guest.getNameOnCard(), guest.getPhone(),
                 cardType.getId(), cardType.getName(), cardType.getSeats(),
                 guest.getGroupName(), guest.getNotes(),
                 guest.getInvitationCode(), invitationLinks.linkFor(company, guest.getInvitationCode()),
-                guest.getRsvpStatus(), guest.getRsvpPeople(), guest.getRsvpMessage());
+                guest.getRsvpStatus(), guest.getRsvpPeople(), guest.getRsvpMessage(), cardStatus);
     }
 
     static String blankToNull(String text) {

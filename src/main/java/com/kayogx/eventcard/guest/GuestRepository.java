@@ -21,6 +21,8 @@ public interface GuestRepository extends JpaRepository<Guest, UUID>, JpaSpecific
 
     long countByEventId(UUID eventId);
 
+    List<Guest> findByEventIdOrderByNameOnCardAsc(UUID eventId);
+
     void deleteAllByEventId(UUID eventId);
 
     @Query("select g.phone from Guest g where g.eventId = :eventId")
