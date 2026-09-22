@@ -21,4 +21,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     List<User> findAllByOrderByFullNameAsc();
 
     long countByRoleAndActiveTrue(UserRole role);
+
+    long countByCompanyIdAndActiveTrue(UUID companyId);
 }

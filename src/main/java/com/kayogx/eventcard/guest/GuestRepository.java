@@ -19,6 +19,8 @@ public interface GuestRepository extends JpaRepository<Guest, UUID>, JpaSpecific
 
     boolean existsByCardTypeId(UUID cardTypeId);
 
+    long countByEventId(UUID eventId);
+
     void deleteAllByEventId(UUID eventId);
 
     @Query("select g.phone from Guest g where g.eventId = :eventId")

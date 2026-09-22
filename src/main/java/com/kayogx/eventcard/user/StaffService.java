@@ -1,6 +1,8 @@
 package com.kayogx.eventcard.user;
 
 import com.kayogx.eventcard.auth.LoggedInUser;
+import com.kayogx.eventcard.billing.PlanLimits;
+import com.kayogx.eventcard.company.CurrentCompany;
 import com.kayogx.eventcard.common.ConflictException;
 import com.kayogx.eventcard.common.EmailAddresses;
 import com.kayogx.eventcard.common.InvalidInputException;
@@ -33,15 +35,21 @@ public class StaffService {
     private final StaffInvitationRepository invitationRepository;
     private final AllCompaniesTransaction allCompaniesTransaction;
     private final String frontendUrl;
+    private final PlanLimits planLimits;
+    private final CurrentCompany currentCompany;
 
     public StaffService(UserRepository userRepository,
                         StaffInvitationRepository invitationRepository,
                         AllCompaniesTransaction allCompaniesTransaction,
-                        @Value("${app.frontend-url}") String frontendUrl) {
+                        @Value("${app.frontend-url}") String frontendUrl,
+                        PlanLimits planLimits,
+                        CurrentCompany currentCompany) {
         this.userRepository = userRepository;
         this.invitationRepository = invitationRepository;
         this.allCompaniesTransaction = allCompaniesTransaction;
         this.frontendUrl = frontendUrl;
+        this.planLimits = planLimits;
+        this.currentCompany = currentCompany;
     }
 
     @Transactional(readOnly = true)
@@ -63,6 +71,8 @@ public class StaffService {
         if (emailAlreadyUsed) {
             throw new ConflictException("This email already has an account", "email");
         }
+
+        planLimits.checkCanAddStaff(currentCompany.get());
 
         LoggedInUser owner = LoggedInUser.current();
         StaffInvitation invitation = new StaffInvitation();
@@ -95,6 +105,10 @@ public class StaffService {
         boolean newActive = request.active() != null ? request.active() : staffMember.isActive();
 
         makeSureCompanyKeepsAnOwner(staffMember, newRole, newActive);
+        boolean reactivating = !staffMember.isActive() && newActive;
+        if (reactivating) {
+            planLimits.checkCanAddStaff(currentCompany.get());
+        }
 
         staffMember.setRole(newRole);
         staffMember.setActive(newActive);

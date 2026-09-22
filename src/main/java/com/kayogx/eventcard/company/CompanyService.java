@@ -1,6 +1,7 @@
 package com.kayogx.eventcard.company;
 
 import com.kayogx.eventcard.auth.LoggedInUser;
+import com.kayogx.eventcard.billing.PlanLimits;
 import com.kayogx.eventcard.common.ConflictException;
 import com.kayogx.eventcard.common.EmailAddresses;
 import com.kayogx.eventcard.common.InvalidInputException;
@@ -35,13 +36,15 @@ public class CompanyService {
     private final DnsTxtLookup dnsTxtLookup;
 
     private final String cnameTarget;
+    private final PlanLimits planLimits;
 
     public CompanyService(CompanyRepository companyRepository, FileStorage fileStorage, DnsTxtLookup dnsTxtLookup,
-                          @Value("${app.custom-domain-target}") String cnameTarget) {
+                          @Value("${app.custom-domain-target}") String cnameTarget, PlanLimits planLimits) {
         this.companyRepository = companyRepository;
         this.fileStorage = fileStorage;
         this.dnsTxtLookup = dnsTxtLookup;
         this.cnameTarget = cnameTarget;
+        this.planLimits = planLimits;
     }
 
     @Transactional(readOnly = true)
@@ -103,6 +106,7 @@ public class CompanyService {
         }
 
         Company company = loadMyCompany();
+        planLimits.checkCustomDomainAllowed(company);
         boolean domainChanged = !domain.equals(company.getCustomDomain());
         if (domainChanged && companyRepository.existsByCustomDomainIgnoreCase(domain)) {
             throw new ConflictException("This domain is already used by another company", "domain");

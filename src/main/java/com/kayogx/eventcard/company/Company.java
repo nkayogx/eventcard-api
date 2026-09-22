@@ -3,10 +3,12 @@ package com.kayogx.eventcard.company;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -70,6 +72,16 @@ public class Company {
 
     /** Stays false until the platform admin verifies the company. Protects our SMS/WhatsApp costs. */
     private boolean canSendMessages = false;
+
+    /** The plan the company chose and paid for. Empty means the Free plan. */
+    private UUID planId;
+
+    /** The last day the paid plan covers. After this (plus a few days' grace) the Free plan applies. */
+    private LocalDate planPaidUntil;
+
+    /** Message credits the company can spend. Never below zero. Only changed through billing/CreditAccount. */
+    @ColumnDefault("0")
+    private long creditBalance = 0;
 
     @CreationTimestamp
     private Instant createdAt;

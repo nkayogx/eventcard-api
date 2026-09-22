@@ -1,5 +1,6 @@
 package com.kayogx.eventcard.platform;
 
+import com.kayogx.eventcard.billing.CurrentPlan;
 import com.kayogx.eventcard.common.NotFoundException;
 import com.kayogx.eventcard.company.AccountStatus;
 import com.kayogx.eventcard.company.Company;
@@ -20,9 +21,11 @@ public class PlatformService {
     private static final int COMPANIES_PER_PAGE = 20;
 
     private final CompanyRepository companyRepository;
+    private final CurrentPlan currentPlan;
 
-    public PlatformService(CompanyRepository companyRepository) {
+    public PlatformService(CompanyRepository companyRepository, CurrentPlan currentPlan) {
         this.companyRepository = companyRepository;
+        this.currentPlan = currentPlan;
     }
 
     /** Newest companies first. {@code search} filters by company name (optional). */
@@ -32,10 +35,16 @@ public class PlatformService {
         String nameFilter = search == null ? "" : search.trim();
         Page<Company> result = companyRepository.findByNameContainingIgnoreCase(nameFilter, pageRequest);
         return new CompanyPage(
-                result.map(CompanyDetails::from).getContent(),
+                result.map(this::rowOf).getContent(),
                 result.getNumber(),
                 result.getTotalPages(),
                 result.getTotalElements());
+    }
+
+    private CompanyPage.CompanyRow rowOf(Company company) {
+        CurrentPlan.PlanState plan = currentPlan.stateOf(company);
+        return new CompanyPage.CompanyRow(CompanyDetails.from(company), plan.plan().getName(), plan.status(),
+                plan.paidUntil(), company.getCreditBalance());
     }
 
     @Transactional

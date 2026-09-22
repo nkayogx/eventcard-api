@@ -1,7 +1,11 @@
 package com.kayogx.eventcard;
 
 import com.jayway.jsonpath.JsonPath;
+import com.kayogx.eventcard.billing.PlanRepository;
+import com.kayogx.eventcard.company.Company;
+import com.kayogx.eventcard.company.CompanyRepository;
 import com.kayogx.eventcard.company.DnsTxtLookup;
+import com.kayogx.eventcard.tenant.AllCompaniesTransaction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -17,6 +21,7 @@ import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilde
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import tools.jackson.databind.json.JsonMapper;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -60,7 +65,36 @@ public abstract class IntegrationTest {
 
     // ---------- Helpers that call the API ----------
 
+    @Autowired
+    protected CompanyRepository companyRepository;
+
+    @Autowired
+    protected PlanRepository planRepository;
+
+    @Autowired
+    protected AllCompaniesTransaction allCompanies;
+
+    /**
+     * A new company on the PRO plan (paid for a month), so tests of other features
+     * are not stopped by plan limits. Use {@link #signUpNewCompanyOnFreePlan} to test the limits.
+     */
     protected TestCompany signUpNewCompany(String companyName) throws Exception {
+        TestCompany company = signUpNewCompanyOnFreePlan(companyName);
+        putOnPlan(company, "PRO", LocalDate.now().plusMonths(1));
+        return company;
+    }
+
+    /** Puts a company on a plan paid until the given date (straight in the database, skipping payment). */
+    protected void putOnPlan(TestCompany company, String planCode, LocalDate paidUntil) {
+        allCompanies.run(() -> {
+            Company saved = companyRepository.findById(company.companyId()).orElseThrow();
+            saved.setPlanId(planRepository.findByCode(planCode).orElseThrow().getId());
+            saved.setPlanPaidUntil(paidUntil);
+            return null;
+        });
+    }
+
+    protected TestCompany signUpNewCompanyOnFreePlan(String companyName) throws Exception {
         String ownerEmail = uniqueEmail("owner");
         String answer = post("/api/auth/signup-company", null, Map.of(
                 "companyName", companyName,

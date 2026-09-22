@@ -1,6 +1,7 @@
 package com.kayogx.eventcard.event;
 
 import com.kayogx.eventcard.auth.LoggedInUser;
+import com.kayogx.eventcard.billing.PlanLimits;
 import com.kayogx.eventcard.card.CardDesignService;
 import com.kayogx.eventcard.common.ConflictException;
 import com.kayogx.eventcard.common.InvalidInputException;
@@ -38,6 +39,7 @@ public class EventService {
     private final EventTotals eventTotals;
     private final CurrentCompany currentCompany;
     private final CardDesignService cardDesignService;
+    private final PlanLimits planLimits;
 
     public EventService(EventRepository eventRepository,
                         CardTypeRepository cardTypeRepository,
@@ -45,7 +47,8 @@ public class EventService {
                         EventFinder eventFinder,
                         EventTotals eventTotals,
                         CurrentCompany currentCompany,
-                        CardDesignService cardDesignService) {
+                        CardDesignService cardDesignService,
+                        PlanLimits planLimits) {
         this.eventRepository = eventRepository;
         this.cardTypeRepository = cardTypeRepository;
         this.guestRepository = guestRepository;
@@ -53,6 +56,7 @@ public class EventService {
         this.eventTotals = eventTotals;
         this.currentCompany = currentCompany;
         this.cardDesignService = cardDesignService;
+        this.planLimits = planLimits;
     }
 
     /** Events sorted by start date. Both filters are optional. */
@@ -122,6 +126,9 @@ public class EventService {
         if (!event.getStatus().allowedNextStatuses().contains(newStatus)) {
             throw new ConflictException("A " + event.getStatus().name().toLowerCase()
                     + " event cannot be changed to " + newStatus.name().toLowerCase(), "status");
+        }
+        if (newStatus == EventStatus.ACTIVE) {
+            planLimits.checkCanActivateEvent(currentCompany.get());
         }
         event.setStatus(newStatus);
         return detailsOf(event);

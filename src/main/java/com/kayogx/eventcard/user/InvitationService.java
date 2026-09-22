@@ -2,6 +2,7 @@ package com.kayogx.eventcard.user;
 
 import com.kayogx.eventcard.auth.AuthService;
 import com.kayogx.eventcard.auth.LoginResponse;
+import com.kayogx.eventcard.billing.PlanLimits;
 import com.kayogx.eventcard.common.ConflictException;
 import com.kayogx.eventcard.common.NotAllowedException;
 import com.kayogx.eventcard.common.NotFoundException;
@@ -27,19 +28,22 @@ public class InvitationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthService authService;
     private final AllCompaniesTransaction allCompaniesTransaction;
+    private final PlanLimits planLimits;
 
     public InvitationService(StaffInvitationRepository invitationRepository,
                              UserRepository userRepository,
                              CompanyRepository companyRepository,
                              PasswordEncoder passwordEncoder,
                              AuthService authService,
-                             AllCompaniesTransaction allCompaniesTransaction) {
+                             AllCompaniesTransaction allCompaniesTransaction,
+                             PlanLimits planLimits) {
         this.invitationRepository = invitationRepository;
         this.userRepository = userRepository;
         this.companyRepository = companyRepository;
         this.passwordEncoder = passwordEncoder;
         this.authService = authService;
         this.allCompaniesTransaction = allCompaniesTransaction;
+        this.planLimits = planLimits;
     }
 
     public InvitationDetails showInvitation(String code) {
@@ -62,6 +66,7 @@ public class InvitationService {
             if (userRepository.existsByEmail(invitation.getEmail())) {
                 throw new ConflictException("This email already has an account. Please log in instead.");
             }
+            planLimits.checkCanAddStaff(company);
 
             User newUser = new User();
             newUser.setCompanyId(invitation.getCompanyId());

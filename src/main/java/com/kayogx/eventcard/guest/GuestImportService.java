@@ -1,5 +1,6 @@
 package com.kayogx.eventcard.guest;
 
+import com.kayogx.eventcard.billing.PlanLimits;
 import com.kayogx.eventcard.common.PhoneNumbers;
 import com.kayogx.eventcard.company.CurrentCompany;
 import com.kayogx.eventcard.event.CardType;
@@ -32,17 +33,20 @@ public class GuestImportService {
     private final CardTypeRepository cardTypeRepository;
     private final EventFinder eventFinder;
     private final CurrentCompany currentCompany;
+    private final PlanLimits planLimits;
 
     public GuestImportService(GuestFileReader fileReader,
                               GuestRepository guestRepository,
                               CardTypeRepository cardTypeRepository,
                               EventFinder eventFinder,
-                              CurrentCompany currentCompany) {
+                              CurrentCompany currentCompany,
+                              PlanLimits planLimits) {
         this.fileReader = fileReader;
         this.guestRepository = guestRepository;
         this.cardTypeRepository = cardTypeRepository;
         this.eventFinder = eventFinder;
         this.currentCompany = currentCompany;
+        this.planLimits = planLimits;
     }
 
     @Transactional(readOnly = true)
@@ -54,13 +58,16 @@ public class GuestImportService {
                 .limit(EXAMPLES_TO_SHOW)
                 .map(ReadyGuest::toReadyRow)
                 .toList();
-        return new ImportPreview(sorted.ready().size(), examples, sorted.problems(), sorted.duplicates());
+        return new ImportPreview(sorted.ready().size(), examples, sorted.problems(), sorted.duplicates(),
+                planLimits.remainingGuests(currentCompany.get(), eventId));
     }
 
     @Transactional
     public ImportResult importGuests(UUID eventId, MultipartFile file) {
         Event event = eventFinder.findChangeableEvent(eventId);
         SortedRows sorted = sortRows(event, fileReader.read(file));
+        // All or nothing: an import that would go over the plan's guest limit is refused as a whole
+        planLimits.checkCanAddGuests(currentCompany.get(), eventId, sorted.ready().size());
 
         List<Guest> newGuests = sorted.ready().stream()
                 .map(ready -> ready.toGuest(event))

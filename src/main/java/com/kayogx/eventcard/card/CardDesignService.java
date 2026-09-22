@@ -1,6 +1,8 @@
 package com.kayogx.eventcard.card;
 
+import com.kayogx.eventcard.billing.PlanLimits;
 import com.kayogx.eventcard.card.CardDesignForms.*;
+import com.kayogx.eventcard.company.CurrentCompany;
 import com.kayogx.eventcard.common.ConflictException;
 import com.kayogx.eventcard.common.InvalidInputException;
 import com.kayogx.eventcard.common.NotFoundException;
@@ -39,6 +41,8 @@ public class CardDesignService {
     private final EventFinder eventFinder;
     private final FileStorage fileStorage;
     private final CardMaker cardMaker;
+    private final PlanLimits planLimits;
+    private final CurrentCompany currentCompany;
 
     public CardDesignService(CardDesignRepository designRepository,
                              CardDesignFieldRepository fieldRepository,
@@ -46,7 +50,9 @@ public class CardDesignService {
                              GuestRepository guestRepository,
                              EventFinder eventFinder,
                              FileStorage fileStorage,
-                             CardMaker cardMaker) {
+                             CardMaker cardMaker,
+                             PlanLimits planLimits,
+                             CurrentCompany currentCompany) {
         this.designRepository = designRepository;
         this.fieldRepository = fieldRepository;
         this.cardTypeRepository = cardTypeRepository;
@@ -54,6 +60,8 @@ public class CardDesignService {
         this.eventFinder = eventFinder;
         this.fileStorage = fileStorage;
         this.cardMaker = cardMaker;
+        this.planLimits = planLimits;
+        this.currentCompany = currentCompany;
     }
 
     @Transactional
@@ -67,8 +75,11 @@ public class CardDesignService {
         Event event = eventFinder.findChangeableEvent(eventId);
         CardDesign design = savedDesignFor(event);
 
-        if (request.kind() == CardDesignKind.UPLOADED && design.getBackgroundFile() == null) {
-            throw new InvalidInputException("Please upload your card artwork first", "kind");
+        if (request.kind() == CardDesignKind.UPLOADED) {
+            planLimits.checkOwnArtworkAllowed(currentCompany.get());
+            if (design.getBackgroundFile() == null) {
+                throw new InvalidInputException("Please upload your card artwork first", "kind");
+            }
         }
         design.setKind(request.kind());
         if (request.templateName() != null) {
@@ -89,6 +100,7 @@ public class CardDesignService {
     public CardDesignDetails uploadArtwork(UUID eventId, MultipartFile file) {
         Event event = eventFinder.findChangeableEvent(eventId);
         CardDesign design = savedDesignFor(event);
+        planLimits.checkOwnArtworkAllowed(currentCompany.get());
         Artwork artwork = readArtwork(file);
 
         boolean sizeChanged = design.getWidth() != null
@@ -117,6 +129,7 @@ public class CardDesignService {
         if (!design.isUploaded()) {
             throw new ConflictException("Special card type artwork is only for uploaded designs. Upload your main artwork first.");
         }
+        planLimits.checkOwnArtworkAllowed(currentCompany.get());
         CardType cardType = findCardType(eventId, cardTypeId);
         Artwork artwork = readArtwork(file);
 

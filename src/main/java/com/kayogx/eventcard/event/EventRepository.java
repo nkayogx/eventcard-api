@@ -7,4 +7,6 @@ import java.util.UUID;
 
 /** Events are automatically limited to the logged-in user's company. */
 public interface EventRepository extends JpaRepository<Event, UUID>, JpaSpecificationExecutor<Event> {
+
+    long countByStatus(EventStatus status);
 }

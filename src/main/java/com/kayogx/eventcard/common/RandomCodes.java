@@ -29,6 +29,17 @@ public final class RandomCodes {
         return code.toString();
     }
 
+    private static final String CAPITALS_AND_DIGITS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+    /** A short payment reference that is easy to read out and type, e.g. "EC-7K3P9Q". */
+    public static String newPaymentReference() {
+        StringBuilder reference = new StringBuilder("EC-");
+        for (int position = 0; position < 6; position++) {
+            reference.append(CAPITALS_AND_DIGITS.charAt(RANDOM.nextInt(CAPITALS_AND_DIGITS.length())));
+        }
+        return reference.toString();
+    }
+
     /** Returns a random, URL-safe code such as "q3F9xT...". */
     public static String newCode() {
         byte[] randomBytes = new byte[24];

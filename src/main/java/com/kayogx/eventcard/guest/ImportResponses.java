@@ -20,9 +20,13 @@ public final class ImportResponses {
     public record ReadyRow(int row, String nameOnCard, String phone, String cardType, String groupName) {
     }
 
-    /** Answer to "check file": nothing has been saved yet. {@code readyExamples} shows the first 10 good rows. */
+    /**
+     * Answer to "check file": nothing has been saved yet. {@code readyExamples} shows the first 10 good rows.
+     * {@code remainingGuestsOnPlan} is how many more guests the company's plan allows (empty = unlimited).
+     */
     public record ImportPreview(int readyCount, List<ReadyRow> readyExamples,
-                                List<ImportProblem> problems, List<ImportDuplicate> duplicates) {
+                                List<ImportProblem> problems, List<ImportDuplicate> duplicates,
+                                Integer remainingGuestsOnPlan) {
     }
 
     /** Answer to "import": the good rows have been saved. */

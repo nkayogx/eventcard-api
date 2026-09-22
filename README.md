@@ -4,7 +4,7 @@ EventCard lets many event companies ("vendors") send digital invitation cards ov
 WhatsApp, SMS and links. This project is the **backend** (Spring Boot, Java 17).
 The React website lives next to it in `../eventcard-web`.
 
-Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md) · [digital cards](docs/superpowers/specs/2026-09-21-card-design-design.md)
+Designs: [multi-tenant core](docs/superpowers/specs/2026-09-21-multi-tenant-core-design.md) · [events & guests](docs/superpowers/specs/2026-09-21-events-and-guests-design.md) · [digital cards](docs/superpowers/specs/2026-09-21-card-design-design.md) · [plans & payments](docs/superpowers/specs/2026-09-22-billing-design.md)
 
 ## Run it on your computer
 
@@ -40,6 +40,7 @@ environment variables instead of using the development defaults:
 | `UPLOADS_FOLDER` | where uploaded logos and card artwork are saved (publicly downloadable) |
 | `CARD_CACHE_FOLDER` | where finished guest cards are kept — **private**, never serve it publicly |
 | `CUSTOM_DOMAIN_TARGET` | the host name vendors point their custom domain to (CNAME) |
+| `PAYMENT_PAY_TO_NAME`, `PAYMENT_PAY_TO_NUMBER`, `PAYMENT_NETWORKS` | your Lipa Namba / till details, shown to vendors when they pay |
 | `PLATFORM_ADMIN_EMAIL`, `PLATFORM_ADMIN_PASSWORD` | the first platform admin |
 
 ## Tests
@@ -64,6 +65,7 @@ Each folder is one topic:
 | `guest/` | guest lists, Excel/CSV upload, template download |
 | `card/` | card designs, templates, drawing card images and QR codes |
 | `invitation/` | the guest's public invitation page and RSVP (no login) |
+| `billing/` | plans and their limits, message credits, payments (start with `PlanLimits.java` and `CreditAccount.java`) |
 | `platform/` | the platform admin's screens (all companies, suspend, allow sending) |
 | `tenant/` | **keeps each company's data separate** — start with `CurrentTenant.java` |
 | `storage/` | saving uploaded files |
@@ -98,3 +100,13 @@ https:// {
 
 The `ask` address answers 200 only for vendors' **verified** custom domains, so nobody
 can make Caddy request certificates for random domains.
+
+## Payments
+
+Vendors pay by mobile money to your Lipa Namba / till, then type the transaction code
+into the app. You check the money arrived and press **Confirm** under
+*Payments* in the platform admin area; the plan or credits switch on at once.
+
+To take payments automatically later (AzamPay, Selcom, ClickPesa...), add a class that
+implements `billing/PaymentProvider.java` and calls `PaymentConfirmer.confirm(...)` when the
+payment company reports the money arrived. Nothing else needs to change.

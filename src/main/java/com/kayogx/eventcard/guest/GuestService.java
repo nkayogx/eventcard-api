@@ -1,5 +1,6 @@
 package com.kayogx.eventcard.guest;
 
+import com.kayogx.eventcard.billing.PlanLimits;
 import com.kayogx.eventcard.card.InvitationLinks;
 import com.kayogx.eventcard.common.ConflictException;
 import com.kayogx.eventcard.common.InvalidInputException;
@@ -39,17 +40,20 @@ public class GuestService {
     private final EventFinder eventFinder;
     private final CurrentCompany currentCompany;
     private final InvitationLinks invitationLinks;
+    private final PlanLimits planLimits;
 
     public GuestService(GuestRepository guestRepository,
                         CardTypeRepository cardTypeRepository,
                         EventFinder eventFinder,
                         CurrentCompany currentCompany,
-                        InvitationLinks invitationLinks) {
+                        InvitationLinks invitationLinks,
+                        PlanLimits planLimits) {
         this.guestRepository = guestRepository;
         this.cardTypeRepository = cardTypeRepository;
         this.eventFinder = eventFinder;
         this.currentCompany = currentCompany;
         this.invitationLinks = invitationLinks;
+        this.planLimits = planLimits;
     }
 
     /** Guests sorted by name. Search (name or phone), card type, group and RSVP filters are optional. */
@@ -104,6 +108,7 @@ public class GuestService {
         if (guestRepository.existsByEventIdAndPhone(eventId, phone)) {
             throw new ConflictException("A guest with this phone number is already on the list", "phone");
         }
+        planLimits.checkCanAddGuests(currentCompany.get(), eventId, 1);
 
         Guest guest = new Guest();
         guest.setCompanyId(event.getCompanyId());

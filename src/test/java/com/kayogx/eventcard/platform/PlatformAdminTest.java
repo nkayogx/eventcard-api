@@ -19,7 +19,9 @@ class PlatformAdminTest extends IntegrationTest {
 
         get("/api/platform/companies?search=Curious", logInAsPlatformAdmin())
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.companies[?(@.id == '" + company.companyId() + "')].name").value("Curious Co"));
+                .andExpect(jsonPath("$.companies[?(@.company.id == '" + company.companyId() + "')].company.name").value("Curious Co"))
+                .andExpect(jsonPath("$.companies[?(@.company.id == '" + company.companyId() + "')].planName").value("Pro"))
+                .andExpect(jsonPath("$.companies[?(@.company.id == '" + company.companyId() + "')].creditBalance").value(0));
     }
 
     @Test

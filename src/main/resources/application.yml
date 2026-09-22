@@ -54,6 +54,13 @@ app:
   # Vendors point their custom domain here with a CNAME record
   custom-domain-target: ${CUSTOM_DOMAIN_TARGET:invites.eventcard.app}
 
+  # How vendors pay us (manual mobile-money payments, confirmed by the platform admin)
+  payments:
+    manual:
+      pay-to-name: ${PAYMENT_PAY_TO_NAME:EventCard Ltd}
+      pay-to-number: ${PAYMENT_PAY_TO_NUMBER:123456}
+      networks: ${PAYMENT_NETWORKS:M-Pesa, Mixx by Yas, Airtel Money, HaloPesa}
+
   # The first platform admin account, created at startup if none exists
   platform-admin:
     email: ${PLATFORM_ADMIN_EMAIL:admin@eventcard.local}
