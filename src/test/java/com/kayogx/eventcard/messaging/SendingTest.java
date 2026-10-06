@@ -2,8 +2,12 @@ package com.kayogx.eventcard.messaging;
 
 import com.jayway.jsonpath.JsonPath;
 import com.kayogx.eventcard.IntegrationTest;
-import com.kayogx.eventcard.billing.CreditAccount;
-import com.kayogx.eventcard.billing.CreditMovement;
+import com.kayogx.eventcard.model.CreditMovement;
+import com.kayogx.eventcard.model.Message;
+import com.kayogx.eventcard.model.MessageStatus;
+import com.kayogx.eventcard.repository.MessageRepository;
+import com.kayogx.eventcard.service.CreditAccount;
+import com.kayogx.eventcard.service.MessageWorker;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

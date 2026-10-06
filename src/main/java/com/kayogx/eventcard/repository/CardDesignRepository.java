@@ -1,0 +1,15 @@
+package com.kayogx.eventcard.repository;
+
+import com.kayogx.eventcard.model.CardDesign;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.Optional;
+import java.util.UUID;
+
+public interface CardDesignRepository extends JpaRepository<CardDesign, UUID> {
+
+    Optional<CardDesign> findByEventId(UUID eventId);
+
+    void deleteByEventId(UUID eventId);
+}

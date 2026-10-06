@@ -1,7 +1,8 @@
 package com.kayogx.eventcard.tenant;
 
 import com.kayogx.eventcard.IntegrationTest;
-import com.kayogx.eventcard.user.UserRepository;
+import com.kayogx.eventcard.repository.UserRepository;
+import com.kayogx.eventcard.service.AllCompaniesTransaction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

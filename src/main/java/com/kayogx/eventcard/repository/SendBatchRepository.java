@@ -1,0 +1,13 @@
+package com.kayogx.eventcard.repository;
+
+import com.kayogx.eventcard.model.SendBatch;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+
+import java.util.List;
+import java.util.UUID;
+
+public interface SendBatchRepository extends JpaRepository<SendBatch, UUID> {
+
+    List<SendBatch> findTop10ByEventIdOrderByCreatedAtDesc(UUID eventId);
+}

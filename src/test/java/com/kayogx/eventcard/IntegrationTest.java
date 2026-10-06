@@ -1,11 +1,11 @@
 package com.kayogx.eventcard;
 
 import com.jayway.jsonpath.JsonPath;
-import com.kayogx.eventcard.billing.PlanRepository;
-import com.kayogx.eventcard.company.Company;
-import com.kayogx.eventcard.company.CompanyRepository;
-import com.kayogx.eventcard.company.DnsTxtLookup;
-import com.kayogx.eventcard.tenant.AllCompaniesTransaction;
+import com.kayogx.eventcard.model.Company;
+import com.kayogx.eventcard.repository.CompanyRepository;
+import com.kayogx.eventcard.repository.PlanRepository;
+import com.kayogx.eventcard.service.AllCompaniesTransaction;
+import com.kayogx.eventcard.service.DnsTxtLookup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;

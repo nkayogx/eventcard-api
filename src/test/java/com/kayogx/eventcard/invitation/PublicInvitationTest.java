@@ -2,10 +2,11 @@ package com.kayogx.eventcard.invitation;
 
 import com.jayway.jsonpath.JsonPath;
 import com.kayogx.eventcard.IntegrationTest;
-import com.kayogx.eventcard.guest.Guest;
-import com.kayogx.eventcard.guest.GuestRepository;
-import com.kayogx.eventcard.guest.InvitationCodeFiller;
-import com.kayogx.eventcard.tenant.AllCompaniesTransaction;
+import com.kayogx.eventcard.config.InvitationCodeFiller;
+import com.kayogx.eventcard.model.Guest;
+import com.kayogx.eventcard.repository.GuestRepository;
+import com.kayogx.eventcard.service.AllCompaniesTransaction;
+import com.kayogx.eventcard.service.WrongCodeLimiter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.web.servlet.ResultActions;

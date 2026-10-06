@@ -1,0 +1,100 @@
+package com.kayogx.eventcard.model;
+
+import com.kayogx.eventcard.util.RandomCodes;
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.TenantId;
+import org.hibernate.annotations.UpdateTimestamp;
+
+import java.time.Instant;
+import java.util.UUID;
+
+/**
+ * One invitation card on an event's guest list, e.g. "Mr & Mrs Juma" with a Double card.
+ * A card can cover several people - its card type says how many seats.
+ */
+@Entity
+@Table(name = "guests",
+        // The same phone number may appear only once per event
+        uniqueConstraints = @UniqueConstraint(columnNames = {"event_id", "phone"}))
+@Getter
+@Setter
+public class Guest {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
+    private UUID id;
+
+    @TenantId
+    @Column(name = "company_id", nullable = false)
+    private UUID companyId;
+
+    @Column(name = "event_id", nullable = false)
+    private UUID eventId;
+
+    /** Exactly as it should appear on the card, e.g. "Mr & Mrs Juma". */
+    @Column(nullable = false, length = 150)
+    private String nameOnCard;
+
+    /** Always in international format, e.g. "+255712345678". */
+    @Column(nullable = false)
+    private String phone;
+
+    @Column(nullable = false)
+    private UUID cardTypeId;
+
+    /** Optional grouping, e.g. "Bride's side". */
+    @Column(length = 60)
+    private String groupName;
+
+    @Column(length = 500)
+    private String notes;
+
+    /**
+     * The secret part of the guest's personal link and QR code, e.g. "Xk9p2QmT7aBc".
+     * Created automatically when the guest is first saved.
+     */
+    @Column(unique = true, length = 20)
+    private String invitationCode;
+
+    @Enumerated(EnumType.STRING)
+    private RsvpStatus rsvpStatus = RsvpStatus.NO_REPLY;
+
+    /** How many people are coming (only when attending). */
+    private Integer rsvpPeople;
+
+    @Column(length = 300)
+    private String rsvpMessage;
+
+    private Instant rsvpAnsweredAt;
+
+    /** How many people on this card have come in at the door so far (0 up to the card's seats). */
+    @ColumnDefault("0")
+    private int peopleArrived = 0;
+
+    private Instant firstArrivedAt;
+
+    private Instant lastArrivedAt;
+
+    @CreationTimestamp
+    private Instant createdAt;
+
+    @UpdateTimestamp
+    private Instant updatedAt;
+
+    /** Runs just before a new guest is saved: gives every guest their own invitation code. */
+    @PrePersist
+    public void giveInvitationCode() {
+        if (invitationCode == null) {
+            invitationCode = RandomCodes.newInvitationCode();
+        }
+    }
+
+    /** Guests saved before RSVP existed have no status yet - they simply haven't replied. */
+    public RsvpStatus getRsvpStatus() {
+        return rsvpStatus == null ? RsvpStatus.NO_REPLY : rsvpStatus;
+    }
+}

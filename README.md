@@ -54,31 +54,29 @@ H2 database otherwise — no setup needed either way.
 
 ## How the code is organised
 
-Each folder is one topic:
+Each folder holds one kind of file:
 
 | Folder | What's inside |
 |---|---|
-| `auth/` | signup, login, login tokens (JWT), security rules |
-| `company/` | company profile, logo, brand colours, custom domain |
-| `user/` | users, roles, staff list, invitations |
-| `event/` | events, card types (Single, Double, VIP…), totals |
-| `guest/` | guest lists, Excel/CSV upload, template download |
-| `card/` | card designs, templates, drawing card images and QR codes |
-| `invitation/` | the guest's public invitation page and RSVP (no login) |
-| `messaging/` | sending cards by WhatsApp/SMS: the queue, the background worker, delivery reports (start with `MessageWorker.java`) |
-| `checkin/` | letting guests in at the door: scan look-up, check-in with seat counting, undo, live numbers |
-| `billing/` | plans and their limits, message credits, payments (start with `PlanLimits.java` and `CreditAccount.java`) |
-| `platform/` | the platform admin's screens (all companies, suspend, allow sending) |
-| `tenant/` | **keeps each company's data separate** — start with `CurrentTenant.java` |
-| `storage/` | saving uploaded files |
-| `common/` | error messages and small shared helpers |
+| `controller/` | the web addresses of the API - each one receives a request and passes it to a service |
+| `service/` | the real work and the rules: sending cards, check-in, plans and credits, drawing card images |
+| `repository/` | reading and saving database rows |
+| `model/` | the database tables as Java classes (Event, Guest, Payment...) and their fixed lists of choices |
+| `dto/` | the shapes of the data the API receives and sends back |
+| `security/` | login tokens (JWT), who is logged in, and which company they belong to |
+| `config/` | setup that runs when the app starts: security rules, company separation, first admin, default plans |
+| `exception/` | the errors the app can raise, and how they are turned into error messages |
+| `util/` | small shared helpers: phone numbers, random codes, QR codes, card drawing |
+
+Good places to start reading: `service/MessageWorker.java` (sending), `service/PlanLimits.java`
+and `service/CreditAccount.java` (plans and credits), `security/CurrentTenant.java` (company separation).
 
 ### How companies are kept apart
 
 Every table that belongs to a company has a `company_id` column marked `@TenantId`.
 Hibernate automatically adds "only this company's rows" to every database query,
 using the company of the logged-in user. If code ever forgets to choose a company,
-it sees **nothing** rather than everything. See `tenant/HibernateTenantSetup.java`.
+it sees **nothing** rather than everything. See `config/HibernateTenantSetup.java`.
 
 ## Custom domains for vendors (hosting)
 

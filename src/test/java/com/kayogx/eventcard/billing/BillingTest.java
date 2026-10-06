@@ -3,7 +3,9 @@ package com.kayogx.eventcard.billing;
 import com.jayway.jsonpath.JsonPath;
 import com.kayogx.eventcard.IntegrationTest;
 import com.kayogx.eventcard.card.CardPictures;
-import com.kayogx.eventcard.common.ConflictException;
+import com.kayogx.eventcard.exception.ConflictException;
+import com.kayogx.eventcard.model.CreditMovement;
+import com.kayogx.eventcard.service.CreditAccount;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 

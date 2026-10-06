@@ -1,6 +1,7 @@
 package com.kayogx.eventcard.guest;
 
 import com.kayogx.eventcard.IntegrationTest;
+import com.kayogx.eventcard.service.GuestFileReader;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;

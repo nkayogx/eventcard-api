@@ -1,7 +1,9 @@
 package com.kayogx.eventcard.user;
 
 import com.kayogx.eventcard.IntegrationTest;
-import com.kayogx.eventcard.tenant.AllCompaniesTransaction;
+import com.kayogx.eventcard.model.StaffInvitation;
+import com.kayogx.eventcard.repository.StaffInvitationRepository;
+import com.kayogx.eventcard.service.AllCompaniesTransaction;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 
