@@ -9,9 +9,9 @@
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.kayogox</groupId>
-	<artifactId>demo</artifactId>
+	<artifactId>eventcard-api</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name>eventcard</name>
+	<name>event card</name>
 	<description>EventCard - multi-company digital invitation cards (backend API)</description>
 
 	<properties>
